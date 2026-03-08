@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+/* Estilos de impresión profesionales 2026 */
+@media print {
+  /* Ocultar TODO por defecto */
+  body * {
+    visibility: hidden;
+    background: white !important;
+  }
+  /* Mostrar SOLO el contenedor de impresión y sus hijos */
+  #printable-area, #printable-area * {
+    visibility: visible;
+  }
+  /* Posicionar el área de impresión al inicio de la hoja */
+  #printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important; /* 4 QRs por fila en papel */
+    gap: 15px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  /* Ocultar botones de borrar en el papel */
+  .no-print {
+    display: none !important;
+  }
+}
