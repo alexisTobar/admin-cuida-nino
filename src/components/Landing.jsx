@@ -3,11 +3,11 @@ import {
   ChevronRight, Smartphone, Users, MapPin, 
   Lock, BarChart3, Mail, ShieldCheck, QrCode 
 } from 'lucide-react';
-import ScannerModal from './components/ScannerModal';
+import ScannerModal from './ScannerModal'; // <--- Importación corregida (misma carpeta)
 
 export default function Landing({ onEnterAdmin, user }) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isScannerOpen, setIsScannerOpen] = useState(false); // <--- ESTADO PARA ABRIR EL MODAL
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const LOGO_URL = "https://i.postimg.cc/kg7yX89x/unnamed.png";
 
   const images = [
@@ -26,7 +26,7 @@ export default function Landing({ onEnterAdmin, user }) {
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans text-slate-900">
       
-      {/* SCANNER MODAL COMPONENT */}
+      {/* COMPONENTE DEL ESCÁNER (MODAL) */}
       <ScannerModal isOpen={isScannerOpen} onClose={() => setIsScannerOpen(false)} />
 
       {/* 1. NAV INSTITUCIONAL AVISTO */}
@@ -41,13 +41,14 @@ export default function Landing({ onEnterAdmin, user }) {
           </div>
           
           <div className="hidden md:flex items-center gap-10">
-            {/* BOTÓN NUEVO EN EL NAV */}
+            {/* BOTÓN DE ESCANEO EN EL NAV */}
             <button 
               onClick={() => setIsScannerOpen(true)}
-              className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-blue-600 hover:text-[#0F172A] transition-colors"
+              className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[#007AFF] hover:text-[#0F172A] transition-colors"
             >
               <QrCode size={16} /> Escanear Pulsera
             </button>
+
             <a href="#propuesta" className="text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-[#007AFF] transition-colors">Sistema</a>
             <a href="#beneficios" className="text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-[#007AFF] transition-colors">Capacidades</a>
             <button 
@@ -78,13 +79,14 @@ export default function Landing({ onEnterAdmin, user }) {
               La plataforma definitiva para la protección infantil en ferias, conciertos y espacios públicos. Identificación inmediata y geolocalización en segundos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              {/* BOTÓN PRINCIPAL LLAMATIVO */}
+              {/* BOTÓN PRINCIPAL DE ESCANEO */}
               <button 
                 onClick={() => setIsScannerOpen(true)}
                 className="bg-[#007AFF] text-white px-10 py-5 font-black text-xs tracking-widest uppercase flex items-center gap-3 hover:bg-[#FF8C00] transition-all shadow-xl shadow-blue-500/20"
               >
                 <QrCode size={18} /> Iniciar Escaneo Web
               </button>
+              
               <button onClick={onEnterAdmin} className="border border-white/30 text-white px-10 py-5 font-black text-xs tracking-widest uppercase hover:bg-white/10 transition-all flex items-center gap-3">
                 Monitor Live <ChevronRight size={18} />
               </button>
@@ -93,7 +95,7 @@ export default function Landing({ onEnterAdmin, user }) {
         </div>
       </section>
 
-      {/* ... RESTO DE TU CÓDIGO (PROPUESTA, BENEFICIOS, FOOTER) ... */}
+      {/* 3. PROPUESTA TÉCNICA */}
       <section className="py-32 bg-slate-50" id="propuesta">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-24 items-center">
@@ -132,6 +134,7 @@ export default function Landing({ onEnterAdmin, user }) {
         </div>
       </section>
 
+      {/* 4. BENEFICIOS */}
       <section className="py-32 bg-white" id="beneficios">
         <div className="max-w-7xl mx-auto px-6 text-center mb-20">
           <span className="text-[#007AFF] font-black tracking-[0.3em] text-[10px] uppercase">Ventajas Operativas</span>
@@ -156,6 +159,7 @@ export default function Landing({ onEnterAdmin, user }) {
         </div>
       </section>
 
+      {/* 6. FOOTER */}
       <footer className="bg-[#0F172A] text-white py-24">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-16">
           <div className="col-span-1 md:col-span-2">
