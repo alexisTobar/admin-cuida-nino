@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { 
   ChevronRight, Smartphone, Users, MapPin, 
-  Lock, BarChart3, Mail, ShieldCheck 
+  Lock, BarChart3, Mail, ShieldCheck, 
+  QrCode, X, Phone, HeartPulse, Activity
 } from 'lucide-react';
+import { Html5QrcodeScanner } from 'html5-qrcode';
+
+// FIREBASE (Asegúrate de importar db de tu config)
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig'; 
 
 export default function Landing({ onEnterAdmin, user }) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scannedData, setScannedData] = useState(null);
+  const [loading, setLoading] = useState(false);
+
   const LOGO_URL = "https://i.postimg.cc/kg7yX89x/unnamed.png";
 
   const images = [
@@ -20,6 +30,37 @@ export default function Landing({ onEnterAdmin, user }) {
     const interval = setInterval(nextSlide, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // LÓGICA DEL ESCÁNER WEB
+  useEffect(() => {
+    let scanner = null;
+    if (isScanning && !scannedData) {
+      scanner = new Html5QrcodeScanner("reader", { 
+        fps: 10, 
+        qrbox: { width: 250, height: 250 } 
+      });
+
+      scanner.render(async (data) => {
+        scanner.clear();
+        setLoading(true);
+        try {
+          const docRef = doc(db, "niños", data);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            setScannedData({ ...docSnap.data(), id: data });
+          } else {
+            alert("El código QR no pertenece al sistema AVISTO");
+            setIsScanning(false);
+          }
+        } catch (error) {
+          console.error("Error al leer QR:", error);
+        } finally {
+          setLoading(false);
+        }
+      });
+    }
+    return () => { if(scanner) scanner.clear(); };
+  }, [isScanning, scannedData]);
 
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans text-slate-900">
@@ -66,12 +107,17 @@ export default function Landing({ onEnterAdmin, user }) {
               La plataforma definitiva para la protección infantil en ferias, conciertos y espacios públicos. Identificación inmediata y geolocalización en segundos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <button onClick={onEnterAdmin} className="bg-[#007AFF] text-white px-10 py-5 font-black text-xs tracking-widest uppercase flex items-center gap-3 hover:bg-[#FF8C00] transition-all shadow-xl shadow-blue-500/20">
-                Iniciar Monitor Live <ChevronRight size={18} />
+              {/* BOTÓN NUEVO: ACTIVAR ESCÁNER QR WEB */}
+              <button 
+                onClick={() => setIsScanning(true)}
+                className="bg-[#007AFF] text-white px-10 py-5 font-black text-xs tracking-widest uppercase flex items-center gap-3 hover:bg-[#FF8C00] transition-all shadow-xl shadow-blue-500/20"
+              >
+                <QrCode size={18} /> Escanear QR Ahora
               </button>
-              <a href="#propuesta" className="border border-white/30 text-white px-10 py-5 font-black text-xs tracking-widest uppercase hover:bg-white/10 transition-all">
-                Ver Ficha Técnica
-              </a>
+              
+              <button onClick={onEnterAdmin} className="border border-white/30 text-white px-10 py-5 font-black text-xs tracking-widest uppercase hover:bg-white/10 transition-all flex items-center gap-3">
+                Monitor Live <ChevronRight size={18} />
+              </button>
             </div>
           </div>
         </div>
@@ -141,38 +187,63 @@ export default function Landing({ onEnterAdmin, user }) {
         </div>
       </section>
 
-      {/* 6. FOOTER */}
-      <footer className="bg-[#0F172A] text-white py-24">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-16">
-          <div className="col-span-1 md:col-span-2">
-            <div className="flex items-center gap-4 mb-8">
-              <img src={LOGO_URL} alt="Logo" className="w-12 h-12 object-contain" />
-              <span className="text-3xl font-black italic uppercase tracking-tighter">AVISTO</span>
-            </div>
-            <p className="max-w-sm text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-loose">
-              Ecosistema de seguridad desarrollado para la gestión de eventos de alta concurrencia y protección civil. Talagante, 2026.
-            </p>
-          </div>
-          
-          <div>
-            <h4 className="font-black mb-8 text-xs uppercase tracking-[0.3em] text-[#007AFF]">Sistema</h4>
-            <ul className="space-y-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              <li><a href="#" className="hover:text-white transition-colors">Términos de Operación</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Privacidad de Datos</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Manual de Uso Staff</a></li>
-            </ul>
-          </div>
+      {/* --- MODAL DE ESCANEO WEB --- */}
+      <AnimatePresence>
+        {isScanning && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0F172A]/95 backdrop-blur-md p-6">
+            <div className="bg-white w-full max-w-xl rounded-3xl overflow-hidden shadow-2xl">
+              <div className="p-6 border-b flex justify-between items-center bg-slate-50">
+                <div className="flex items-center gap-3">
+                  <Activity className="text-[#007AFF]" />
+                  <span className="text-xs font-black uppercase tracking-widest">Escáner Web Activo</span>
+                </div>
+                <button onClick={() => setIsScanning(false)}><X size={24}/></button>
+              </div>
+              
+              <div className="p-8">
+                {!scannedData ? (
+                  <div id="reader" className="overflow-hidden rounded-2xl border-4 border-dashed border-slate-200"></div>
+                ) : (
+                  <div className="text-center animate-in fade-in zoom-in duration-300">
+                    <div className="w-32 h-32 mx-auto rounded-full border-4 border-[#007AFF] overflow-hidden mb-6">
+                      <img src={scannedData.fotoUrl || LOGO_URL} className="w-full h-full object-cover" alt="Perfil" />
+                    </div>
+                    <h3 className="text-3xl font-black uppercase tracking-tighter mb-2">{scannedData.nombre}</h3>
+                    <p className="bg-slate-100 py-1 px-4 inline-block rounded-full text-[10px] font-bold mb-8">UID: {scannedData.id}</p>
+                    
+                    <div className="grid grid-cols-1 gap-4 text-left">
+                      <div className="bg-red-50 p-4 border-l-4 border-red-500">
+                        <div className="flex items-center gap-2 mb-1 text-red-600">
+                          <HeartPulse size={16}/> <span className="text-[10px] font-black uppercase">Info Médica</span>
+                        </div>
+                        <p className="text-sm font-bold text-red-900">{scannedData.alergias || "SIN OBSERVACIONES"}</p>
+                      </div>
 
-          <div>
-            <h4 className="font-black mb-8 text-xs uppercase tracking-[0.3em] text-[#FF8C00]">Soporte</h4>
-            <ul className="space-y-4 text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              <li className="flex items-center gap-2"><Mail size={12}/> tobaralexis.89@gmail.com</li>
-              <li className="flex items-center gap-2"><MapPin size={12}/> Talagante, Chile</li>
-              <li className="pt-4 text-slate-500 italic">© 2026 AVISTO CORE v2.0</li>
-            </ul>
+                      <div className="bg-blue-50 p-4 border-l-4 border-blue-500">
+                        <div className="flex items-center gap-2 mb-3 text-blue-600">
+                          <Phone size={16}/> <span className="text-[10px] font-black uppercase">Contactos de Emergencia</span>
+                        </div>
+                        {Array.isArray(scannedData.contactos) ? scannedData.contactos.map((tel, i) => (
+                          <a key={i} href={`tel:${tel}`} className="block py-2 border-b border-blue-100 font-mono font-bold text-[#0F172A] hover:text-blue-600">
+                            {tel}
+                          </a>
+                        )) : <a href={`tel:${scannedData.contacto}`} className="font-mono font-bold">{scannedData.contacto}</a>}
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setScannedData(null)}
+                      className="mt-8 w-full bg-[#0F172A] text-white py-4 font-black text-xs uppercase tracking-widest hover:bg-[#007AFF] transition-all"
+                    >
+                      Nuevo Escaneo
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      </footer>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -186,3 +257,7 @@ function BenefitCard({ icon, title, desc }) {
     </div>
   );
 }
+
+// Necesitas instalar framer-motion o similar para AnimatePresence si no lo tienes,
+// de lo contrario, puedes manejarlo con estados simples de React.
+const AnimatePresence = ({ children }) => <>{children}</>;
