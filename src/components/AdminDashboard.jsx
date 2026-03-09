@@ -20,6 +20,8 @@ export default function AdminDashboard({ user, ninos, onBack }) {
   const [alert, setAlert] = useState({ show: false, title: '', message: '', onConfirm: null, type: 'info' });
 
   const LOGO_URL = "https://i.postimg.cc/kg7yX89x/unnamed.png";
+  
+  // URL REAL DE TU PROYECTO PARA ESCANEO NATIVO
   const BASE_URL = "https://admin-cuida-nino.vercel.app/scan";
 
   const registrados = ninos.filter(n => n.nombre && n.nombre !== "");
@@ -59,8 +61,9 @@ export default function AdminDashboard({ user, ninos, onBack }) {
         contactos: Array.isArray(editChild.contactos) ? editChild.contactos : [editChild.contacto]
       });
       setEditChild(null);
-      showAlert("ÉXITO", "REGISTRO ACTUALIZADO", null, 'success');
+      showAlert("ÉXITO", "REGISTRO ACTUALIZADO CON ÉXITO", null, 'success');
     } catch (error) {
+      console.error(error);
       showAlert("ERROR", "NO SE PUDO EDITAR EL REGISTRO", null, 'danger');
     }
   };
@@ -90,42 +93,45 @@ export default function AdminDashboard({ user, ninos, onBack }) {
         </button>
       </div>
 
-      {/* --- MODAL: EDICIÓN (NUEVA MEJORA) --- */}
+      {/* --- MODAL: EDICIÓN --- */}
       <AnimatePresence>
         {editChild && (
           <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#1A1D23] border border-white/10 w-full max-w-lg p-8 rounded-3xl shadow-2xl">
-              <div className="flex justify-between items-center mb-8">
-                <h3 className="text-sm font-black uppercase tracking-[0.3em] text-blue-500">Editar Registro</h3>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#1A1D23] border border-white/10 w-full max-w-lg p-6 md:p-8 rounded-3xl shadow-2xl">
+              <div className="flex justify-between items-center mb-6 text-left">
+                <h3 className="text-xs font-black uppercase tracking-[0.3em] text-blue-500">Editar Perfil</h3>
                 <button onClick={() => setEditChild(null)} className="text-slate-500 hover:text-white"><X size={20}/></button>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-4 text-left">
                 <div>
-                  <label className="text-[9px] font-black uppercase text-slate-500 mb-2 block">Nombre Completo</label>
-                  <input className="w-full bg-white/5 border border-white/10 p-4 text-white text-sm outline-none focus:border-blue-600" value={editChild.nombre} onChange={(e)=>setEditChild({...editChild, nombre: e.target.value})} />
+                  <label className="text-[8px] font-black uppercase text-slate-500 mb-1 block tracking-widest text-left">Nombre Completo</label>
+                  <input className="w-full bg-white/5 border border-white/10 p-3 text-white text-sm outline-none focus:border-blue-600" value={editChild.nombre} onChange={(e)=>setEditChild({...editChild, nombre: e.target.value})} />
                 </div>
                 <div>
-                  <label className="text-[9px] font-black uppercase text-slate-500 mb-2 block">Contacto</label>
-                  <input className="w-full bg-white/5 border border-white/10 p-4 text-white text-sm outline-none focus:border-blue-600 font-mono" value={editChild.contacto} onChange={(e)=>setEditChild({...editChild, contacto: e.target.value})} />
+                  <label className="text-[8px] font-black uppercase text-slate-500 mb-1 block tracking-widest text-left">Contacto</label>
+                  <input className="w-full bg-white/5 border border-white/10 p-3 text-white text-sm outline-none focus:border-blue-600 font-mono" value={editChild.contacto} onChange={(e)=>setEditChild({...editChild, contacto: e.target.value})} />
                 </div>
                 <div>
-                  <label className="text-[9px] font-black uppercase text-slate-500 mb-2 block">Alergias / Médicos</label>
-                  <textarea className="w-full bg-white/5 border border-white/10 p-4 text-white text-sm outline-none focus:border-blue-600 h-24 resize-none" value={editChild.alergias} onChange={(e)=>setEditChild({...editChild, alergias: e.target.value})} />
+                  <label className="text-[8px] font-black uppercase text-slate-500 mb-1 block tracking-widest text-left">Información Médica / Alergias</label>
+                  <textarea className="w-full bg-white/5 border border-white/10 p-3 text-white text-sm outline-none focus:border-blue-600 h-24 resize-none" value={editChild.alergias} onChange={(e)=>setEditChild({...editChild, alergias: e.target.value})} />
                 </div>
               </div>
-              <button onClick={handleGuardarEdicion} className="w-full mt-8 bg-blue-600 py-4 font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 rounded-xl transition-all"><Save size={16}/> Guardar Cambios</button>
+              <button onClick={handleGuardarEdicion} className="w-full mt-6 bg-blue-600 hover:bg-blue-500 py-3 font-black uppercase text-[10px] tracking-widest flex items-center justify-center gap-2 rounded-lg transition-all shadow-lg shadow-blue-900/20"><Save size={14}/> Guardar Registro</button>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* --- MODAL: FICHA COMPLETA (RESPONSIVO) --- */}
+      {/* --- MODAL: FICHA COMPLETA (VISTA) --- */}
       <AnimatePresence>
         {selectedChild && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 md:p-6 bg-black/95 backdrop-blur-xl">
             <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="bg-[#16191F] border border-white/10 w-full h-full md:h-auto md:max-w-4xl max-h-[100vh] md:max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
               <div className="p-4 md:p-6 border-b border-white/5 flex justify-between items-center bg-black/20 text-[10px] font-black uppercase tracking-widest">
-                <div className="flex items-center gap-3"><img src={LOGO_URL} className="w-6 h-6 object-contain" /><span>Expediente de Seguridad AVISTO</span></div>
+                <div className="flex items-center gap-3">
+                  <img src={LOGO_URL} className="w-6 h-6 object-contain" />
+                  <span>Expediente de Seguridad AVISTO</span>
+                </div>
                 <button onClick={() => setSelectedChild(null)} className="p-2 text-slate-500 hover:text-white transition-colors"><X size={24} /></button>
               </div>
               <div className="flex-1 overflow-y-auto p-6 md:p-12 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16">
@@ -140,17 +146,17 @@ export default function AdminDashboard({ user, ninos, onBack }) {
                 </div>
                 <div className="space-y-6 md:space-y-10">
                   <section>
-                    <label className="text-[8px] font-black text-slate-500 tracking-[0.3em] uppercase block mb-4">Información Médica</label>
+                    <label className="text-[8px] font-black text-slate-500 tracking-[0.3em] uppercase block mb-4 text-left">Información Médica</label>
                     <div className={`p-4 md:p-6 border-l-4 ${selectedChild.alergias && selectedChild.alergias !== "NINGUNA" ? 'bg-red-500/5 border-red-500' : 'bg-white/5 border-white/10'}`}>
-                      <div className="flex items-center gap-3 mb-2">
+                      <div className="flex items-center gap-3 mb-2 text-left">
                         <HeartPulse size={18} className={selectedChild.alergias && selectedChild.alergias !== "NINGUNA" ? 'text-red-500' : 'text-slate-500'} />
                         <span className="text-[10px] font-black text-white uppercase">Alertas Críticas</span>
                       </div>
-                      <p className="text-sm font-bold text-slate-300 uppercase leading-relaxed">{selectedChild.alergias || "SIN OBSERVACIONES"}</p>
+                      <p className="text-sm font-bold text-slate-300 uppercase leading-relaxed text-left">{selectedChild.alergias || "SIN OBSERVACIONES"}</p>
                     </div>
                   </section>
                   <section>
-                    <label className="text-[8px] font-black text-slate-500 tracking-[0.3em] uppercase block mb-4">Frecuencias de Contacto</label>
+                    <label className="text-[8px] font-black text-slate-500 tracking-[0.3em] uppercase block mb-4 text-left">Frecuencias de Contacto</label>
                     <div className="space-y-3">
                       {(Array.isArray(selectedChild.contactos) ? selectedChild.contactos : [selectedChild.contacto]).map((tel, i) => (
                         <div key={i} className="flex items-center justify-between p-4 bg-white/5 border border-white/5">
@@ -173,7 +179,7 @@ export default function AdminDashboard({ user, ninos, onBack }) {
       {/* SIDEBAR RESPONSIVO */}
       <aside className={`${isSidebarOpen ? 'flex' : 'hidden'} md:flex fixed md:relative inset-0 z-[100] md:z-auto w-full md:w-64 bg-black border-r border-white/5 flex-col shrink-0 transition-all`}>
         <div className="p-8 mb-4 flex items-center justify-between md:justify-start gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 text-left">
             <img src={LOGO_URL} alt="AVISTO Logo" className="w-10 h-10 object-contain" />
             <h1 className="text-white font-black tracking-[0.1em] text-lg uppercase italic">AVISTO<span className="text-blue-500">.APP</span></h1>
           </div>
@@ -196,7 +202,7 @@ export default function AdminDashboard({ user, ninos, onBack }) {
         
         {tab === 'dashboard' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-6xl mx-auto">
-            <header className="mb-8 md:mb-12 border-l-4 border-blue-600 pl-4 md:pl-8">
+            <header className="mb-8 md:mb-12 border-l-4 border-blue-600 pl-4 md:pl-8 text-left">
               <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-tight">Estado de Operación</h2>
               <p className="text-slate-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] mt-4 italic text-left">AVISTO SECURE NODE // 2026</p>
             </header>
@@ -205,7 +211,7 @@ export default function AdminDashboard({ user, ninos, onBack }) {
               <CardStat label="QR en Bodega" val={disponibles.length} icon={<Clock className="text-slate-700"/>} />
               <button onClick={generarLote} className="bg-white p-8 md:p-10 flex flex-col items-center justify-center gap-4 group hover:bg-blue-600 transition-all">
                 <Plus className="text-black group-hover:text-white" size={32} />
-                <span className="text-black group-hover:text-white text-[9px] font-black tracking-[0.3em] uppercase text-center">Generar Lote</span>
+                <span className="text-black group-hover:text-white text-[9px] font-black tracking-[0.3em] uppercase">Generar Lote</span>
               </button>
             </div>
           </motion.div>
@@ -213,14 +219,14 @@ export default function AdminDashboard({ user, ninos, onBack }) {
 
         {tab === 'gestion' && (
           <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-10 gap-4">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4 text-left">
               <div className="text-left">
-                <h2 className="text-lg md:text-xl font-black text-white uppercase tracking-widest">Monitor de Seguridad</h2>
-                <p className="text-[8px] text-slate-500 font-bold uppercase mt-1">Sincronización en tiempo real</p>
+                <h2 className="text-xl font-black text-white uppercase tracking-widest text-sm text-left">Monitor de Seguridad</h2>
+                <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 text-left">Sincronización en tiempo real</p>
               </div>
-              <div className="relative w-full md:w-auto">
+              <div className="relative w-full md:w-80">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700" size={16}/>
-                <input type="text" placeholder="BUSCAR..." className="pl-12 pr-6 py-3 bg-white/5 border border-white/10 text-white text-[10px] tracking-widest uppercase focus:border-blue-600 outline-none w-full md:w-80" onChange={(e) => setFiltro(e.target.value)} />
+                <input type="text" placeholder="FILTRAR..." className="pl-12 pr-6 py-3 bg-white/5 border border-white/10 text-white text-xs tracking-widest uppercase focus:border-blue-600 outline-none w-full transition-all" onChange={(e) => setFiltro(e.target.value)} />
               </div>
             </div>
 
@@ -266,16 +272,16 @@ export default function AdminDashboard({ user, ninos, onBack }) {
                         {n.fotoUrl ? <img src={n.fotoUrl} className="w-full h-full object-cover" /> : <Users size={20} className="m-3 text-slate-600" />}
                       </div>
                       <div>
-                        <p className="text-white font-black text-sm uppercase">{n.nombre}</p>
-                        <p className="text-blue-500 font-mono text-[10px]">#{n.id}</p>
+                        <p className="text-white font-black text-sm uppercase text-left">{n.nombre}</p>
+                        <p className="text-blue-500 font-mono text-[10px] text-left">#{n.id}</p>
                       </div>
                     </div>
                     <div className="flex gap-4">
                        <button onClick={() => setEditChild(n)} className="text-slate-400"><Edit3 size={18}/></button>
-                       <button onClick={() => handleEliminar(n.id)} className="text-red-500/40"><Trash2 size={18}/></button>
+                       <button onClick={() => handleEliminar(n.id)} className="text-red-900"><Trash2 size={18}/></button>
                     </div>
                   </div>
-                  <button onClick={() => setSelectedChild(n)} className="w-full py-3 bg-white/5 border border-white/5 text-[9px] font-black uppercase text-slate-400 rounded-lg">Ver Expediente SOS</button>
+                  <button onClick={() => setSelectedChild(n)} className="w-full py-3 bg-white/5 border border-white/5 text-[9px] font-black uppercase tracking-widest text-slate-400 rounded-lg transition-all active:bg-blue-600 active:text-white">Ver Expediente SOS</button>
                 </div>
               ))}
             </div>
@@ -284,16 +290,17 @@ export default function AdminDashboard({ user, ninos, onBack }) {
 
         {tab === 'inventario' && (
           <div className="animate-in fade-in duration-500 max-w-7xl mx-auto">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 no-print">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 no-print text-left">
               <div className="text-left">
-                <h2 className="text-xl font-black text-white uppercase tracking-widest">Bodega QR</h2>
-                <p className="text-[9px] text-slate-500 font-bold uppercase mt-1">Impresión para pulseras</p>
+                <h2 className="text-xl font-black text-white uppercase tracking-widest text-left">Bodega QR</h2>
+                <p className="text-[9px] text-slate-500 font-bold uppercase mt-1 text-left">Impresión para pulseras físicas</p>
               </div>
               <button onClick={() => window.print()} className="w-full md:w-auto bg-white text-black px-10 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 hover:text-white flex items-center justify-center gap-3 transition-all rounded-lg"><Printer size={14}/> Imprimir Etiquetas</button>
             </header>
             <div id="printable-area" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 md:gap-6">
               {disponibles.map(p => (
                 <div key={p.id} className="bg-white p-4 md:p-8 flex flex-col items-center group relative border border-slate-100 shadow-sm rounded-xl">
+                  {/* CÓDIGO QR CON LINK DINÁMICO REAL */}
                   <QRCodeSVG value={`${BASE_URL}/${p.id}`} size={80} className="md:w-[110px] md:h-[110px]" level="H" />
                   <p className="mt-4 text-black font-black text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-mono">{p.id}</p>
                   <button onClick={() => handleEliminar(p.id)} className="absolute top-2 right-2 text-red-500 no-print md:opacity-0 group-hover:opacity-100 transition-opacity p-2"><Trash2 size={16}/></button>
@@ -308,9 +315,9 @@ export default function AdminDashboard({ user, ninos, onBack }) {
       <AnimatePresence>
         {alert.show && (
           <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#1A1D23] p-8 max-w-sm w-full border-t-4 border-blue-600 rounded-2xl text-left">
-              <h3 className="text-[10px] font-black tracking-[0.4em] text-white uppercase mb-4">{alert.title}</h3>
-              <p className="text-slate-500 text-[10px] uppercase leading-relaxed mb-8">{alert.message}</p>
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#1A1D23] p-8 max-w-sm w-full border-t-4 border-blue-600 rounded-2xl text-left shadow-2xl">
+              <h3 className="text-[10px] font-black tracking-[0.4em] text-white uppercase mb-4 text-left">{alert.title}</h3>
+              <p className="text-slate-500 text-[10px] uppercase leading-relaxed mb-8 text-left">{alert.message}</p>
               <div className="flex gap-2">
                 <button onClick={() => setAlert({...alert, show:false})} className="flex-1 py-3 text-[10px] font-black text-slate-600 uppercase transition-all">Cerrar</button>
                 {alert.onConfirm && <button onClick={alert.onConfirm} className="flex-1 py-3 bg-white text-black text-[10px] font-black uppercase rounded-lg hover:bg-blue-600 hover:text-white transition-all">Confirmar</button>}
