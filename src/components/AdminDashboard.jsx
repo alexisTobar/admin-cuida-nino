@@ -14,12 +14,14 @@ import { doc, deleteDoc, setDoc, updateDoc } from 'firebase/firestore';
 export default function AdminDashboard({ user, ninos, onBack }) {
   const [tab, setTab] = useState('dashboard');
   const [filtro, setFiltro] = useState('');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Para móvil
   const [selectedChild, setSelectedChild] = useState(null);
   const [editChild, setEditChild] = useState(null); // Para el modal de edición
   const [alert, setAlert] = useState({ show: false, title: '', message: '', onConfirm: null, type: 'info' });
 
   const LOGO_URL = "https://i.postimg.cc/kg7yX89x/unnamed.png";
+  // URL BASE PARA ESCANEO NATIVO (Cambiala por tu URL real de Vercel)
+  const BASE_URL = "https://avisto-app.vercel.app/scan";
 
   const registrados = ninos.filter(n => n.nombre && n.nombre !== "");
   const disponibles = ninos.filter(n => !n.nombre || n.nombre === "");
@@ -38,7 +40,7 @@ export default function AdminDashboard({ user, ninos, onBack }) {
   const handleEliminar = (id) => {
     showAlert(
       "CONFIRMAR ELIMINACIÓN",
-      `¿DESEA BORRAR EL REGISTRO ${id} DE FORMA PERMANENTE?`,
+      `¿DESEA BORRAR EL REGISTRO ${id}? ESTA ACCIÓN ES IRREVERSIBLE.`,
       async () => {
         await deleteDoc(doc(db, "niños", id));
         setAlert({ ...alert, show: false });
@@ -58,9 +60,10 @@ export default function AdminDashboard({ user, ninos, onBack }) {
         contactos: Array.isArray(editChild.contactos) ? editChild.contactos : [editChild.contacto]
       });
       setEditChild(null);
-      showAlert("ÉXITO", "REGISTRO ACTUALIZADO", null, 'success');
+      showAlert("ÉXITO", "REGISTRO ACTUALIZADO CON ÉXITO", null, 'success');
     } catch (error) {
-      showAlert("ERROR", "NO SE PUDO EDITAR", null, 'danger');
+      console.error(error);
+      showAlert("ERROR", "NO SE PUDO EDITAR EL REGISTRO", null, 'danger');
     }
   };
 
@@ -72,7 +75,7 @@ export default function AdminDashboard({ user, ninos, onBack }) {
         fechaCreacion: new Date().toISOString()
       });
     }
-    showAlert("NÚCLEO ACTUALIZADO", "8 CÓDIGOS INYECTADOS.", null, 'success');
+    showAlert("NÚCLEO ACTUALIZADO", "8 CÓDIGOS INYECTADOS CON ÉXITO.", null, 'success');
   };
 
   return (
@@ -198,55 +201,59 @@ export default function AdminDashboard({ user, ninos, onBack }) {
         
         {tab === 'dashboard' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-6xl mx-auto">
-            <header className="mb-12 border-l-4 border-blue-600 pl-8">
-              <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-tight">Estado de Operación</h2>
-              <p className="text-slate-600 text-[10px] font-black uppercase tracking-[0.5em] mt-4 italic">AVISTO SECURE NODE // 2026</p>
+            <header className="mb-8 md:mb-12 border-l-4 border-blue-600 pl-4 md:pl-8">
+              <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter uppercase leading-tight">Estado de <br /> Operación</h2>
+              <p className="text-slate-600 text-[8px] md:text-[10px] font-black uppercase tracking-[0.5em] mt-4 italic">AVISTO SECURE NODE // 2026</p>
             </header>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-white/5 border border-white/5">
-              <CardStat label="Unidades Protegidas" val={registrados.length} icon={<CheckCircle2 className="text-blue-500"/>} />
-              <CardStat label="QR en Bodega" val={disponibles.length} icon={<Clock className="text-slate-700"/>} />
-              <button onClick={generarLote} className="bg-white p-10 flex flex-col items-center justify-center gap-4 group hover:bg-blue-600 transition-all">
+              <CardStat label="Protegidas" val={registrados.length} icon={<CheckCircle2 className="text-blue-500"/>} />
+              <CardStat label="En Bodega" val={disponibles.length} icon={<Clock className="text-slate-700"/>} />
+              <button onClick={generarLote} className="bg-white p-8 md:p-10 flex flex-col items-center justify-center gap-4 group hover:bg-blue-600 transition-all">
                 <Plus className="text-black group-hover:text-white" size={32} />
-                <span className="text-black group-hover:text-white text-[10px] font-black tracking-[0.3em] uppercase">Generar Lote</span>
+                <span className="text-black group-hover:text-white text-[9px] font-black tracking-[0.3em] uppercase">Generar Lote</span>
               </button>
             </div>
           </motion.div>
         )}
 
         {tab === 'gestion' && (
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
+          <div className="animate-in fade-in duration-500 max-w-7xl mx-auto">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-10 gap-4">
               <div>
-                <h2 className="text-xl font-black text-white uppercase tracking-widest text-sm">Monitor de Seguridad</h2>
-                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Sincronización en tiempo real</p>
+                <h2 className="text-lg md:text-xl font-black text-white uppercase tracking-widest">Monitor Live</h2>
+                <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest mt-1">Sincronización en tiempo real</p>
               </div>
-              <div className="relative w-full md:w-80">
+              <div className="relative w-full md:w-auto">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700" size={16}/>
-                <input type="text" placeholder="FILTRAR..." className="pl-12 pr-6 py-3 bg-white/5 border border-white/10 text-white text-xs tracking-widest uppercase focus:border-blue-600 outline-none w-full transition-all" onChange={(e) => setFiltro(e.target.value)} />
+                <input 
+                  type="text" placeholder="BUSCAR..." 
+                  className="pl-12 pr-6 py-3 bg-white/5 border border-white/10 text-white text-[10px] tracking-widest uppercase focus:border-blue-600 outline-none w-full md:w-80"
+                  onChange={(e) => setFiltro(e.target.value)}
+                />
               </div>
             </div>
 
             {/* TABLA ESCRITORIO */}
-            <div className="hidden md:block border border-white/5 bg-[#16191F]">
+            <div className="hidden md:block border border-white/5 overflow-hidden bg-[#16191F]">
               <table className="w-full text-left">
-                <thead className="bg-black/40 border-b border-white/10 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <thead className="bg-black/40 border-b border-white/10 uppercase text-[9px] font-black text-slate-500">
                   <tr>
                     <th className="px-8 py-5">UID</th>
-                    <th className="px-8 py-5">Perfil del Menor</th>
+                    <th className="px-8 py-5">Perfil</th>
                     <th className="px-8 py-5">Contacto</th>
-                    <th className="px-8 py-5 text-right">Acciones</th>
+                    <th className="px-8 py-5">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {registrados.filter(n => n.nombre.toLowerCase().includes(filtro.toLowerCase())).map(n => (
-                    <tr key={n.id} className="hover:bg-white/[0.02] transition-colors group text-sm font-bold uppercase">
-                      <td className="px-8 py-6 font-mono text-blue-500 text-xs">#{n.id}</td>
+                    <tr key={n.id} className="hover:bg-white/[0.02] transition-colors group">
+                      <td className="px-8 py-6"><span className="font-mono text-blue-500 text-[11px] bg-blue-500/5 px-2 py-1">#{n.id}</span></td>
                       <td className="px-8 py-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-full border border-white/10 overflow-hidden bg-slate-800 shrink-0">
+                          <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-slate-800 shrink-0">
                             {n.fotoUrl ? <img src={n.fotoUrl} className="w-full h-full object-cover" /> : <Users size={16} className="m-3 text-slate-600" />}
                           </div>
-                          <span>{n.nombre}</span>
+                          <span className="text-sm font-black text-white uppercase">{n.nombre}</span>
                         </div>
                       </td>
                       <td className="px-8 py-6 text-xs font-mono">{Array.isArray(n.contactos) ? n.contactos[0] : n.contacto}</td>
@@ -263,7 +270,7 @@ export default function AdminDashboard({ user, ninos, onBack }) {
               </table>
             </div>
 
-            {/* LISTA MÓVIL (Restaura la foto que habías pedido) */}
+            {/* LISTA MÓVIL */}
             <div className="md:hidden space-y-4">
               {registrados.filter(n => n.nombre.toLowerCase().includes(filtro.toLowerCase())).map(n => (
                 <div key={n.id} className="bg-[#16191F] border border-white/5 p-5 flex flex-col gap-4">
@@ -301,9 +308,9 @@ export default function AdminDashboard({ user, ninos, onBack }) {
             <div id="printable-area" className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3 md:gap-6">
               {disponibles.map(p => (
                 <div key={p.id} className="bg-white p-4 md:p-8 flex flex-col items-center group relative border border-slate-100 shadow-sm rounded-xl">
-                  <QRCodeSVG value={p.id} size={80} className="md:w-[110px] md:h-[110px]" level="H" />
+                  {/* MEJORA: QR CON ENLACE DINÁMICO */}
+                  <QRCodeSVG value={`${BASE_URL}/${p.id}`} size={80} className="md:w-[110px] md:h-[110px]" level="H" />
                   <p className="mt-4 text-black font-black text-[10px] md:text-[12px] tracking-[0.5em] uppercase font-mono">{p.id}</p>
-                  {/* MEJORA: ELIMINAR QR DISPONIBLE */}
                   <button onClick={() => handleEliminar(p.id)} className="absolute top-2 right-2 text-red-500 no-print md:opacity-0 group-hover:opacity-100 transition-opacity p-2"><Trash2 size={16}/></button>
                 </div>
               ))}
