@@ -14,9 +14,8 @@ export default function ScannerModal({ isOpen, onClose }) {
   const [location, setLocation] = useState(null);
 
   const LOGO_URL = "https://i.postimg.cc/kg7yX89x/unnamed.png";
-  const NUMERO_CARABINEROS = "229223340"; // 23ª Comisaría de Talagante
+  const NUMERO_CARABINEROS = "229223340"; 
 
-  // Obtener ubicación GPS al abrir el modal
   useEffect(() => {
     if (isOpen) {
       navigator.geolocation.getCurrentPosition(
@@ -27,18 +26,27 @@ export default function ScannerModal({ isOpen, onClose }) {
     }
   }, [isOpen]);
 
+  // --- LÓGICA PARA EXTRAER EL ID DEL LINK ---
   const handleScan = async (err, result) => {
     if (result && !scannedData && !loading) {
       setLoading(true);
       try {
-        const data = result.text;
-        const docRef = doc(db, "niños", data);
+        let rawData = result.text;
+        let cleanId = rawData;
+
+        // Si el QR contiene un link, extraemos solo el ID del final
+        if (rawData.includes('/')) {
+          const parts = rawData.split('/');
+          cleanId = parts[parts.length - 1];
+        }
+
+        const docRef = doc(db, "niños", cleanId);
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          setScannedData({ ...docSnap.data(), id: data });
+          setScannedData({ ...docSnap.data(), id: cleanId });
         } else {
-          setError("Código no registrado en AVISTO");
+          setError(`ID ${cleanId} no registrado`);
           setTimeout(() => setError(null), 3000);
         }
       } catch (e) {
@@ -66,7 +74,6 @@ export default function ScannerModal({ isOpen, onClose }) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0F172A]/98 backdrop-blur-lg p-4 overflow-y-auto">
       <div className="bg-white w-full max-w-lg rounded-[2.5rem] overflow-hidden shadow-2xl relative my-8">
         
-        {/* HEADER */}
         <div className="p-6 border-b flex justify-between items-center bg-slate-50">
           <div className="flex items-center gap-3">
             <ShieldAlert className="text-[#007AFF]" size={24} />
@@ -102,25 +109,19 @@ export default function ScannerModal({ isOpen, onClose }) {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest pt-2">
                 Escaneando entorno seguro...
               </p>
+              {error && <div className="text-red-600 font-bold text-xs uppercase">{error}</div>}
             </div>
           ) : (
             <div className="animate-in fade-in zoom-in duration-300 space-y-6">
               
-              {/* PERFIL */}
               <div className="flex flex-col items-center">
-                <div className="relative">
-                  <div className="w-32 h-32 rounded-full border-4 border-[#007AFF] p-1 shadow-xl overflow-hidden">
-                    <img src={scannedData.fotoUrl || LOGO_URL} className="w-full h-full object-cover rounded-full bg-slate-100" />
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 bg-green-500 p-2 rounded-full border-4 border-white">
-                    <Activity size={16} color="white" />
-                  </div>
+                <div className="w-32 h-32 rounded-full border-4 border-[#007AFF] p-1 shadow-xl overflow-hidden">
+                  <img src={scannedData.fotoUrl || LOGO_URL} className="w-full h-full object-cover rounded-full bg-slate-100" />
                 </div>
                 <h3 className="text-3xl font-black uppercase tracking-tighter text-[#0F172A] mt-4">{scannedData.nombre}</h3>
                 <span className="text-[10px] font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full mt-2 tracking-widest">UID: #{scannedData.id}</span>
               </div>
 
-              {/* ACCIONES DE EMERGENCIA */}
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   onClick={enviarAlertaPadres}
@@ -139,7 +140,6 @@ export default function ScannerModal({ isOpen, onClose }) {
                 </a>
               </div>
 
-              {/* FICHA MÉDICA */}
               <div className="bg-red-50 p-5 rounded-3xl border-l-8 border-red-500">
                 <div className="flex items-center gap-2 mb-2 text-red-600">
                   <HeartPulse size={20}/>
@@ -150,15 +150,12 @@ export default function ScannerModal({ isOpen, onClose }) {
                 </p>
               </div>
 
-              {/* LLAMAR CONTACTOS */}
               <div className="space-y-3">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Llamada de Emergencia</p>
                 {(Array.isArray(scannedData.contactos) ? scannedData.contactos : [scannedData.contacto]).map((tel, i) => (
                   <a key={i} href={`tel:${tel}`} className="flex justify-between items-center bg-slate-900 p-5 rounded-2xl hover:bg-slate-800 transition-colors shadow-md">
                     <div className="flex items-center gap-4">
-                      <div className="bg-white/10 p-2 rounded-lg">
-                        <Phone size={18} className="text-[#00D2FF]" />
-                      </div>
+                      <div className="bg-white/10 p-2 rounded-lg"><Phone size={18} className="text-[#00D2FF]" /></div>
                       <span className="text-white font-mono font-black text-xl tracking-tighter">{tel}</span>
                     </div>
                     <ChevronRight size={20} className="text-slate-500" />
